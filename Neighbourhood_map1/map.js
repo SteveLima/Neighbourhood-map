@@ -1,22 +1,13 @@
 
-		var map;
+		var infowindow, map;
 		var markers = [	]
 		var locations = [
-			{title:'Some oaks bistro', location:{lat:-33.965765, lng:18.475173},content:"adfdasf"},
-			{title:'Chuck Yangs Chinese', location:{lat:-33.965748, lng:18.475282},content:"adfafdasfdasf"},
-			{title:'Michaels Kitchen & Bar', location:{lat:-33.965513, lng:18.475367},content:"adfafdasfdasf"},
-			{title:'Rondebosch park', location:{lat:-33.965025, lng:18.476031},content:"adfafdasfdasf"},
-			{title:'Woodlands park', location:{lat:-33.962696, lng:18.476267},content:"adfafdasfdasf"},
-			{title:'Newlands rugby staduim', location:{lat:-33.96994, lng:18.46852},content:"adfafdasfdasf"},
-			{title:'Keurboom Park', location:{lat:-33.973252, lng:18.478419},content:"adfafdasfdasf"},
-			{title:'Newlands cricket staduim ', location:{lat:-33.973652, lng:18.468838},content:"adfafdasfdasf"},
-			{title:'Kelvin Grove club', location:{lat:-33.971508, lng:18.470646},content:"adfafdasfdasf"},
-			{title:'Rondebosch commons', location:{lat:-33.957671, lng:18.481354},content:"adfafdasfdasf"},
-			{title:'Fesival court', location:{lat:-33.96757, lng:18.473613},content:"adfafdasfdasf"},
-			{title:'Rondebosch veterinary clinic', location:{lat:-33.970013, lng:18.473865 },content:"adfafdasfdasf"}
-		
-			]
-
+			{title:'Some oaks bistro', location:{lat:-33.965765, lng:18.475173}, id:'52125b4611d2e6fdf222a3aa'},
+			{title:'Chuck Yangs Chinese', location:{lat:-33.965748, lng:18.475282}, id:'4c38c4170a71c9b67d4641c9'},
+			{title:'Michaels Kitchen & Bar', location:{lat:-33.965513, lng:18.475367}, id:'4c5320e4a4269c74cf5f83ab'},
+			{title:'Chippies prego', location:{lat:-33.9611828, lng:18.4780655}, id:'4c73a8ba8efc37040b09167d'},
+			{title:'Kelvin Grove Club', location:{lat:-33.9711542, lng:18.4702621}, id:'4c6e071165eda0931b9250d0'},]
+		var categories = ['France', 'Germany', 'Spain']
 		var styles = [
 			    {
 			        "featureType": "all",
@@ -198,62 +189,42 @@
 				]
 
 		function initMap(){
-
+			infowindow = new google.maps.InfoWindow()
 			map = new google.maps.Map(document.getElementById('map'), {
 				center :{lat:-33.967585, lng:18.473704},
 				zoom: 15,
 				styles:styles
 			}); 
 
- var largeInfowindow = new google.maps.InfoWindow();
         // The following group uses the location array to create an array of markers on initialize.
         for (var i = 0; i < locations.length; i++) {
           // Get the position from the location array.
           var position = locations[i].location;
           var title = locations[i].title;
           var content = locations[i].content;
+          var id = locations[i].id;
           // Create a marker per location, and put into markers array.
            var marker = new google.maps.Marker({
             position: position,
             title: title,
             content:content,
             animation: google.maps.Animation.DROP,
-            id: i
-
+            id: id
           });
-          // Push the marker to our array of markers.
+          locations[i].marker = marker;
+
+          // Push the marker to our array of markers and display all markers.
           markers.push(marker);
+          showListings()
           // Create an onclick event to open an infowindow at each marker.
           marker.addListener('click', function() {
-            populateInfoWindow(this, largeInfowindow);
-            
+          	fourSquareInfo(this)
+          
           });
-        
+        // Buttons for the functions that hide and show all the markers.
         document.getElementById('show-listings').addEventListener('click', showListings);
         document.getElementById('hide-listings').addEventListener('click', hideListings);
-        // listMarkers(markers)
       }
-
-      		
-      	
-      // This function populates the infowindow when the marker is clicked. We'll only allow
-      // one infowindow which will open at the marker that is clicked, and populate based
-      // on that markers position.
-      function populateInfoWindow(marker, infowindow) {
-        // Check to make sure the infowindow is not already opened on this marker.
-        if (infowindow.marker != marker) {
-          infowindow.marker = marker;
-          infowindow.setContent('<div>' + marker.title + '</div>'+'<div>'+ marker.content +'</div>');
-          infowindow.open(map, marker);
-          marker.setIcon("http://maps.google.com/mapfiles/ms/icons/green-dot.png");
-          // Make sure the marker property is cleared if the infowindow is closed.
-          infowindow.addListener('closeclick', function() {
-            infowindow.marker = null;
-            marker.setIcon("http://maps.google.com/mapfiles/ms/icons/red-dot.png");
-          });
-        }
-      }
- //     
 
       // This function will loop through the markers array and display them all.
       function showListings() {
@@ -276,26 +247,45 @@
 }
 
 function viewModel(){
+	restaurantCategories = ko.observableArray(categories);
 	 var self = this;
 
 		self.locations = ko.observableArray(locations);
-		self.openInfo =function(marker){
-			this.populateInfoWindow(this,largeInfowindow);
-		}
-
-	}
+		self.openInfo =function(i){
+			google.maps.event.trigger(this.marker, 'click');
+			
+	}}
 		ko.applyBindings(new viewModel());
 
+// Function that uses the foursquare api to return an ajax request with the name , rating and picture of a restuarant 
+function fourSquareInfo(marker){
+var apiURL = 'https://api.foursquare.com/v2/venues/';
+var foursquareClientID = 'SYQPAQPQ33AFQWCFSOLSDQL0GE4R415YWUNLOB1U3GIVXCGC'
+var foursquareSecret ='EKRFYYDNG4ORCPDIBIBZRZ2DIXWTO25CO1PV3BNKHBJKTEMA';
+var foursquareVersion = '20170326';
+var venueFoursquareID = marker.id;
+var streetViewImage = 'https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyA_sVLSg_6HaVm1kqfrQsvhsJ8Rw6jYQLo&streetview?size=50x50&location=-33.965765,18.475173&callback=initMap'
+var foursquareURL = apiURL + venueFoursquareID + '?client_id=' + foursquareClientID +  '&client_secret=' + foursquareSecret +'&v=' + foursquareVersion;
 
-
-  //     	for (var i = 0; i < locations.length; i++) {
-  //     		var box = document.getElementById("aaa");
-  //     		var mark = document.createElement('ul') ;
-  //     		var tex = document.createTextNode(markers[i].title);
-  //     		markers[i].addListener('click',function(){
-  //     			populateInfoWindow(markers[i],largeInfowindow);
-  //     		});
-  //     		mark.appendChild(tex);
-  //     		box.appendChild(mark) ;
-
-		// }
+$.ajax({
+  url: foursquareURL, 
+  success: function(data) {
+  	console.log(data)
+  	var val = data.response.venue.bestPhoto;
+    var rating = data.response.venue.rating;
+    var name = data.response.venue.name;
+    var image = '<img src =' +'"'+val.prefix + '200x100' + val.suffix+ '">'			
+    if (infowindow.marker != marker) {
+          infowindow.marker = marker;
+           infowindow.setContent('<h3>'+name+'</h3>'+"FourSquare Rating:" +rating.toString() +'<div>' +image+'</div>' );
+          infowindow.open(map, marker);
+          marker.setIcon("http://maps.google.com/mapfiles/ms/icons/green-dot.png");
+          // Make sure the marker property is cleared if the infowindow is closed.
+          infowindow.addListener('closeclick', function() {
+            infowindow.marker = null;
+            marker.setIcon("http://maps.google.com/mapfiles/ms/icons/red-dot.png");
+	          });  
+			};
+		}
+	}); 
+}
