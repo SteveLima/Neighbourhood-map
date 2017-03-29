@@ -2,12 +2,14 @@
 		var infowindow, map;
 		var markers = [	]
 		var locations = [
-			{title:'Some oaks bistro', location:{lat:-33.965765, lng:18.475173}, id:'52125b4611d2e6fdf222a3aa'},
-			{title:'Chuck Yangs Chinese', location:{lat:-33.965748, lng:18.475282}, id:'4c38c4170a71c9b67d4641c9'},
-			{title:'Michaels Kitchen & Bar', location:{lat:-33.965513, lng:18.475367}, id:'4c5320e4a4269c74cf5f83ab'},
-			{title:'Chippies prego', location:{lat:-33.9611828, lng:18.4780655}, id:'4c73a8ba8efc37040b09167d'},
-			{title:'Kelvin Grove Club', location:{lat:-33.9711542, lng:18.4702621}, id:'4c6e071165eda0931b9250d0'},]
-		var categories = ['France', 'Germany', 'Spain']
+			{title:'Some oaks bistro', location:{lat:-33.965765, lng:18.475173}, id:'52125b4611d2e6fdf222a3aa',category:'Pizza Place'},
+			{title:'Chuck Yangs Chinese', location:{lat:-33.965748, lng:18.475282}, id:'4c38c4170a71c9b67d4641c9',category:'France'},
+			{title:'Michaels Kitchen & Bar', location:{lat:-33.965513, lng:18.475367}, id:'4c5320e4a4269c74cf5f83ab',category:'Cafe and Deli'},
+			{title:'Chippies prego', location:{lat:-33.9611828, lng:18.4780655}, id:'4c73a8ba8efc37040b09167d',category:'Fast Food'},
+			{title:'Kelvin Grove Club', location:{lat:-33.9711542, lng:18.4702621}, id:'4c6e071165eda0931b9250d0',category:'Fine dinning'},
+			{title:'Borussos', location:{lat:-33.9656008, lng:18.4730615}, id:'4da5e9221e726e4969669412',category:'Pizza Place'},]
+		var categories = ['None', 'Cafe and Deli', 'Pizza Place', 'Fast Food']
+		var categories = ['None', 'Cafe and Deli', 'Pizza Place', 'Fast Food', 'Fine dinning']
 		var styles = [
 			    {
 			        "featureType": "all",
@@ -187,7 +189,7 @@
 			        ]
 			    }
 				]
-
+		var chosenCategory= []
 		function initMap(){
 			infowindow = new google.maps.InfoWindow()
 			map = new google.maps.Map(document.getElementById('map'), {
@@ -219,7 +221,7 @@
           // Create an onclick event to open an infowindow at each marker.
           marker.addListener('click', function() {
           	fourSquareInfo(this)
-          
+          	console.log(chosenCategory)
           });
         // Buttons for the functions that hide and show all the markers.
         document.getElementById('show-listings').addEventListener('click', showListings);
@@ -246,16 +248,31 @@
     }	
 }
 
+
 function viewModel(){
 	restaurantCategories = ko.observableArray(categories);
 	 var self = this;
 
-		self.locations = ko.observableArray(locations);
-		self.openInfo =function(i){
-			google.maps.event.trigger(this.marker, 'click');
-			
-	}}
-		ko.applyBindings(new viewModel());
+	self.locations = ko.observableArray(locations);
+	self.openInfo =function(i){
+		google.maps.event.trigger(this.marker, 'click');
+	}
+
+	self.restaurantCategories = ko.observableArray(categories);
+	self.chosenCategory = ko.observable('');
+	self.items = ko.observableArray(locations);
+	 self.filteredItems = ko.computed(function() {
+        var filter = self.chosenCategory();
+        if (!filter || filter == "None") {
+            return self.items();
+        } else {
+        	return ko.utils.arrayFilter(self.items(), function(i) {
+                return i.category == filter; //returns true or false
+            });
+        }
+    });
+}
+ko.applyBindings(new viewModel());
 
 // Function that uses the foursquare api to return an ajax request with the name , rating and picture of a restuarant 
 function fourSquareInfo(marker){
