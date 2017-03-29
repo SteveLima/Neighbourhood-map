@@ -9,17 +9,21 @@
       <div class="options-box">
         <h1 >Rondebosch points of interest</h1>
         <div >
+          <p>
+            Restuarant type:
+            <select data-bind="options: restaurantCategories"></select>
+          </p>
           <input id="show-listings" type="button" value="Show markers">
           <input id="hide-listings" type="button" value="Hide markers">
-          <ul data-bind="foreach: locations, click:$parent.openInfo">
-		    <li>
-		        <span data-bind="text: title"> </span>
-		    </li>
-			</ul>
+          <ul data-bind="foreach: locations" >
+    		    <li data-bind= "click:$parent.openInfo">
+    		        <span data-bind="text: title"> </span>
+    		    </li>
+    			</ul>
         </div>
       </div>
       <div id="map"></div>
-    </div>
+</div>
 
 
 
@@ -32,3 +36,5 @@
 </body>
 </html>
 
+
+ ,
